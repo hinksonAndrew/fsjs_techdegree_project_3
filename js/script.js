@@ -3,8 +3,13 @@ const otherJobRoleInput = document.getElementById('other-title');
 const colorDropdown = document.getElementById('color');
 const themeSelect = document.getElementById('design');
 const option = document.createElement('option');
+const activity = document.querySelector('.activities');
+const activityOutput = document.createElement('p');
+activity.appendChild(activityOutput);
+
 let punShirts = [];
 let heartShirts = [];
+let activityTotalCost = 0;
 
 // Regex constants
 const regexClipColor = /\s\W(.+)\W/i;
@@ -85,4 +90,16 @@ themeSelect.addEventListener('change', (e) => {
     } else {
         createOption();
     }
+});
+
+activity.addEventListener('change', (e) => {
+    const checkedCost = +e.target.getAttribute('data-cost');
+    const dayAndTime = e.target.getAttribute('data-day-and-time');
+
+    if (e.target.checked === true) {
+        activityTotalCost += checkedCost;
+    } else {
+        activityTotalCost -= checkedCost;
+    }
+    activityOutput.innerHTML = `Total: $${activityTotalCost}`;
 });
