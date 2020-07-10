@@ -1,10 +1,17 @@
 const nameInput = document.getElementById('name');
 const otherJobRoleInput = document.getElementById('other-title');
+const colorLabel = document.querySelector('label[for=color]');
 const colorDropdown = document.getElementById('color');
 const themeSelect = document.getElementById('design');
 const option = document.createElement('option');
 const activity = document.querySelector('.activities');
 const activityOutput = document.createElement('p');
+const payment = document.getElementById('payment');
+const paymentOptions = payment.options;
+const creditCardDiv = document.getElementById('credit-card');
+const paypalDiv = document.getElementById('paypal');
+const bitcoinDiv = document.getElementById('bitcoin');
+const button = document.querySelector('button');
 activity.appendChild(activityOutput);
 
 let punShirts = [];
@@ -42,20 +49,58 @@ createOption creates an option and adds it to the colorDropdown at index 0.
 Also checks if there is already a 'select a theme' option. If there is
 it wont create one, it will only select it.
 */
-const createOption = () => {
-    if (colorDropdown[0].value !== 'select_theme') {
-        let option = document.createElement('option');
-        option.text = 'Please select a theme';
-        option.value = 'select_theme'
-        colorDropdown.add(option, 0);
-    }
+const hideColors = () => {
+    colorLabel.hidden = true;
+    // if (colorDropdown[0].value !== 'select_theme') {
+    //     let option = document.createElement('option');
+    //     option.text = 'Please select a theme';
+    //     option.value = 'select_theme'
+    //     colorDropdown.add(option, 0);
+    // }
     colorDropdown[0].selected = true;
+    colorDropdown.hidden = true;
+}
+
+/*
+selectPaymentMethod is given the value of the target from activity and shows/hides
+the information about the various payment methods. There is a default value of
+credit card to make sure when its first called before the listener below it sets
+the page correctly.
+*/
+const selectPaymentMethod = (option = 'credit card') => {
+    if (option === 'credit card') {
+        creditCardDiv.hidden = false;
+        paypalDiv.hidden = true;
+        bitcoinDiv.hidden = true;
+    } else if (option === 'paypal') {
+        creditCardDiv.hidden = true;
+        paypalDiv.hidden = false;
+        bitcoinDiv.hidden = true;
+    } else if (option === 'bitcoin') {
+        creditCardDiv.hidden = true;
+        paypalDiv.hidden = true;
+        bitcoinDiv.hidden = false;
+    }
+}
+
+const validateName = (string) => {
+    const nameRegex = /^[a-z]* [a-z]*$/i;
+    return nameRegex.test(string);
+}
+
+const validateEmail = (string) => {
+    const emailRegex = ;
+    return emailRegex.test(string);
 }
 
 // initilize
 nameInput.focus();
 otherJobRoleInput.hidden = true;
-createOption();
+hideColors();
+paymentOptions[0].hidden = true;
+paymentOptions[1].selected = true;
+selectPaymentMethod();
+
 
 /*
 this for loop pushes the colors that are provided at load into their own
@@ -84,17 +129,27 @@ themeSelect.addEventListener('change', (e) => {
         colorDropdown[i].hidden = true;
     }
     if (e.target.value === 'js puns') {
+        colorDropdown.hidden = false;
+        colorLabel.hidden = false;
         showColors(punShirts);
     } else if (e.target.value === 'heart js') {
+        colorDropdown.hidden = false;
+        colorLabel.hidden = false;
         showColors(heartShirts);
     } else {
-        createOption();
+        hideColors();
     }
 });
 
+/*
+the listener on activity grabs the events data day time and also loops through 
+all activities in list and compares the day time to see if matched. If they are
+then its disables options that are not available and also this updates the total cost.
+*/
 activity.addEventListener('change', (e) => {
     const checkedCost = +e.target.getAttribute('data-cost');
-    const dayAndTime = e.target.getAttribute('data-day-and-time');
+    const targetDate = e.target.getAttribute('data-day-and-time');
+    const activityInput = document.querySelectorAll('input[type=checkbox]');
 
     if (e.target.checked === true) {
         activityTotalCost += checkedCost;
@@ -102,4 +157,28 @@ activity.addEventListener('change', (e) => {
         activityTotalCost -= checkedCost;
     }
     activityOutput.innerHTML = `Total: $${activityTotalCost}`;
+
+    for (let i = 0; i < activityInput.length; i++) {
+        let tempActivity = activityInput[i];
+        let tempDate = activityInput[i].getAttribute('data-day-and-time');
+        if (tempDate === targetDate && tempActivity !== e.target) {
+            if (e.target.checked) {
+                tempActivity.disabled = true;
+            } else if (!e.target.checked) {
+                tempActivity.disabled = false;
+            }
+        }
+    }
+});
+
+/*
+the listener on payment calls the selectPaymentMethod whenever the dropdown is changed.
+*/
+payment.addEventListener('change', (e) => {
+    selectPaymentMethod(e.target.value);
+});
+
+button.addEventListener('click', (e) => {
+    e.preventDefault();
+    console.log(validateName(nameInput.value));
 });
