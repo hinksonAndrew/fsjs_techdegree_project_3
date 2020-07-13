@@ -1,14 +1,17 @@
 const nameInput = document.getElementById('name');
+const emailInput = document.getElementById('mail');
 const otherJobRoleInput = document.getElementById('other-title');
 const colorLabel = document.querySelector('label[for=color]');
 const colorDropdown = document.getElementById('color');
 const themeSelect = document.getElementById('design');
-const option = document.createElement('option');
 const activity = document.querySelector('.activities');
 const activityOutput = document.createElement('p');
 const payment = document.getElementById('payment');
 const paymentOptions = payment.options;
 const creditCardDiv = document.getElementById('credit-card');
+const cardNumberInput = document.getElementById('cc-num');
+const zipcodeInput = document.getElementById('zip');
+const cvvInput = document.getElementById('cvv');
 const paypalDiv = document.getElementById('paypal');
 const bitcoinDiv = document.getElementById('bitcoin');
 const button = document.querySelector('button');
@@ -45,18 +48,10 @@ const showColors = (shirts) => {
 }
 
 /*
-createOption creates an option and adds it to the colorDropdown at index 0.
-Also checks if there is already a 'select a theme' option. If there is
-it wont create one, it will only select it.
+hideColors hides the color dropdown
 */
 const hideColors = () => {
     colorLabel.hidden = true;
-    // if (colorDropdown[0].value !== 'select_theme') {
-    //     let option = document.createElement('option');
-    //     option.text = 'Please select a theme';
-    //     option.value = 'select_theme'
-    //     colorDropdown.add(option, 0);
-    // }
     colorDropdown[0].selected = true;
     colorDropdown.hidden = true;
 }
@@ -83,14 +78,81 @@ const selectPaymentMethod = (option = 'credit card') => {
     }
 }
 
-const validateName = (string) => {
-    const nameRegex = /^[a-z]* [a-z]*$/i;
-    return nameRegex.test(string);
+const showError = (source, bool) => {
+    if (bool) {
+        source.style.border = '2px solid #5e97b0';
+    } else {
+        source.style.border = '2px solid red';
+    }
 }
 
-const validateEmail = (string) => {
-    const emailRegex = ;
-    return emailRegex.test(string);
+const validateName = () => {
+    const nameRegex = /^[a-z]* [a-z]*$/i;
+    const string = nameInput.value; 
+    if (nameRegex.test(string)) {
+        showError(nameInput, true)
+        return true;
+    } else {
+        showError(nameInput, false);
+        return false;
+    }
+}
+
+const validateEmail = () => {
+    //pulled this regex from https://www.regular-expressions.info/email.html
+    const emailRegex = /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/i;
+    const string = emailInput.value;
+    if (emailRegex.test(string)) {
+        showError(emailInput, true);
+        return true;
+    } else {
+        showError(emailInput, false);
+        return false;
+    }
+}
+
+const validateActivity = () => {
+    if (activityTotalCost !== 0) {
+        activity.style.border = '0px solid #5e97b0';
+        return true;
+    } else {
+        showError(activity, false);
+        return false;
+    }
+}
+
+const validateCreditCard = () => {
+    const number = cardNumberInput.value;
+    const zip = zipcodeInput.value;
+    const cvv = cvvInput.value;
+    const cardNumber = /^[0-9]{13,16}$/.test(number);
+    const zipCode = /^[0-9]{5}$/.test(zip);
+    const cvvCode = /^[0-9]{3}$/.test(cvv);
+
+    if (cardNumber && zipCode && cvvCode) {
+        return true;
+    } else if (!cardNumberInput) {
+        showError(cardNumberInput, false);
+    } else if (!zipcodeInput) {
+        showError(zipcodeInput, false);
+    } else if (!cvvInput) {
+        showError(cvvInput, false);
+    }
+    return false;
+}
+
+const masterValidator = () => {
+    const nameTest = validateName();
+    const emailTest = validateEmail();
+    const activityTest = validateActivity();
+    if (nameTest && emailTest && activityTest) {
+        if (paymentOptions[1].selected) {
+            return validateCreditCard();
+        }
+        return true;
+    } else {
+        return false;
+    }
 }
 
 // initilize
@@ -180,5 +242,12 @@ payment.addEventListener('change', (e) => {
 
 button.addEventListener('click', (e) => {
     e.preventDefault();
-    console.log(validateName(nameInput.value));
+    // console.log('name: ' + validateName(nameInput.value));
+    // console.log('email: ' + validateEmail(emailInput.value));
+    // console.log('activity: ' + validateActivity());
+    // if (paymentOptions[1].selected) {
+    //     console.log('credit card: ' + validateCreditCard(cardNumberInput.value, zipcodeInput.value, cvvInput.value));
+    // }
+    //console.log(validateName(nameInput.value));
+    console.log(masterValidator());
 });
