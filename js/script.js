@@ -7,6 +7,7 @@ const colorLabel = document.querySelector('label[for=color]');
 const colorDropdown = document.getElementById('color');
 const themeSelect = document.getElementById('design');
 const activity = document.querySelector('.activities');
+const activities = document.querySelectorAll('input[type=checkbox]');
 const activityOutput = document.createElement('p');
 const payment = document.getElementById('payment');
 const paymentOptions = payment.options;
@@ -84,46 +85,80 @@ const selectPaymentMethod = (option = 'credit card') => {
 This addes a red border to the incorrect field.
 The type arg is used for specifying certain errors.
 */
-const showError = (source, bool, type=false) => {
+const createDiv = (source, id, message) => {
+    const parent = source.parentNode;
+    const next = source.nextElementSibling;
+    const div = document.createElement('div');
+    div.setAttribute('id', id);
+    div.innerText = message;
+    parent.insertBefore(div, next);
+}
+
+const removeDiv = (id) => {
+    const element = document.getElementById(id);
+    console.log(id);
+    element.parentNode.removeChild(element);
+}
+
+const handleError = (source, bool, message, type) => {
+    
     if (bool) {
         source.style.border = '2px solid #5e97b0';
+        removeDiv(type);
+        
     } else {
         source.style.border = '2px solid red';
+        createDiv(source, type, message);
     }
 }
 
 // Validator Functions
 const validateName = () => {
+    const message = 'Invalid Name';
     const nameRegex = /^[a-z]* [a-z]*$/i;
     const string = nameInput.value; 
     if (nameRegex.test(string)) {
-        showError(nameInput, true)
+        handleError(nameInput, true)
         return true;
     } else {
-        showError(nameInput, false);
+        handleError(nameInput, false, message, 'name-error');
         return false;
     }
 }
 
 const validateEmail = () => {
     //pulled this regex from https://www.regular-expressions.info/email.html
+    const message = 'Invalid Email';
     const emailRegex = /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/i;
     const string = emailInput.value;
     if (emailRegex.test(string)) {
-        showError(emailInput, true);
+        handleError(emailInput, true);
         return true;
     } else {
-        showError(emailInput, false);
+        handleError(emailInput, false, message, 'email-error');
         return false;
     }
 }
 
 const validateActivity = () => {
-    if (activityTotalCost !== 0) {
-        activity.style.border = '0px solid #5e97b0';
+    // if (activityTotalCost !== 0) {
+    //     handleError(activity, true);
+    //     return true;
+    // } else {
+    //     handleError(activity, false);
+    //     return false;
+    // }
+    let check = false;
+    for (let i = 0; i < activities.length; i++) {
+        if (activities[i].checked) {
+            check = true;
+        }
+    }
+    if (check) {
+        handleError(activity, true);
         return true;
     } else {
-        showError(activity, false);
+        handleError(activity, false);
         return false;
     }
 }
@@ -137,27 +172,27 @@ const validateCreditCard = () => {
     const cvvCode = /^[0-9]{3}$/.test(cvv);
 
     if (!cardNumber) {
-        showError(cardNumberInput, false);
+        handleError(cardNumberInput, false);
     } else {
-        showError(cardNumberInput, true);
+        handleError(cardNumberInput, true);
     }
 
     if (!zipCode) {
-        showError(zipcodeInput, false);
+        handleError(zipcodeInput, false);
     } else {
-        showError(zipcodeInput, true);
+        handleError(zipcodeInput, true);
     }
     
     if (!cvvCode) {
-        showError(cvvInput, false);
+        handleError(cvvInput, false);
     } else {
-        showError(cvvInput, true);
+        handleError(cvvInput, true);
     }
 
     if (cardNumber && zipCode && cvvCode) {
         return true;
     }
-    
+
     return false;
 }
 
@@ -284,6 +319,7 @@ payment.addEventListener('change', (e) => {
 });
 
 button.addEventListener('click', (e) => {
+    e.preventDefault();
     if (!masterValidator()) {
         e.preventDefault();
     }
