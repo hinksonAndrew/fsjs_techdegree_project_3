@@ -1,5 +1,7 @@
 const nameInput = document.getElementById('name');
 const emailInput = document.getElementById('mail');
+const title = document.getElementById('title');
+const titleOptions = title.options;
 const otherJobRoleInput = document.getElementById('other-title');
 const colorLabel = document.querySelector('label[for=color]');
 const colorDropdown = document.getElementById('color');
@@ -209,6 +211,17 @@ for (let i = 0; i < colorDropdown.length; i++) {
 }
 
 // event listeners
+/*
+the listener on title hides or shows the other job role input bar
+*/
+title.addEventListener('change', (e) => {
+    if (e.target.value === 'other') {
+        otherJobRoleInput.hidden = false;
+    } else {
+        otherJobRoleInput.hidden = true;
+    }
+});
+
 /*
 the listener on themeselect waits for the user to select a theme and based
 on the value of that selection will update the colorDropdown to only
