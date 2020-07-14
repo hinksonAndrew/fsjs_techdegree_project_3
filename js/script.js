@@ -78,7 +78,11 @@ const selectPaymentMethod = (option = 'credit card') => {
     }
 }
 
-const showError = (source, bool) => {
+/*
+This addes a red border to the incorrect field.
+The type arg is used for specifying certain errors.
+*/
+const showError = (source, bool, type=false) => {
     if (bool) {
         source.style.border = '2px solid #5e97b0';
     } else {
@@ -86,6 +90,7 @@ const showError = (source, bool) => {
     }
 }
 
+// Validator Functions
 const validateName = () => {
     const nameRegex = /^[a-z]* [a-z]*$/i;
     const string = nameInput.value; 
@@ -129,29 +134,54 @@ const validateCreditCard = () => {
     const zipCode = /^[0-9]{5}$/.test(zip);
     const cvvCode = /^[0-9]{3}$/.test(cvv);
 
+    if (!cardNumber) {
+        showError(cardNumberInput, false);
+    } else {
+        showError(cardNumberInput, true);
+    }
+
+    if (!zipCode) {
+        showError(zipcodeInput, false);
+    } else {
+        showError(zipcodeInput, true);
+    }
+    
+    if (!cvvCode) {
+        showError(cvvInput, false);
+    } else {
+        showError(cvvInput, true);
+    }
+
     if (cardNumber && zipCode && cvvCode) {
         return true;
-    } else if (!cardNumberInput) {
-        showError(cardNumberInput, false);
-    } else if (!zipcodeInput) {
-        showError(zipcodeInput, false);
-    } else if (!cvvInput) {
-        showError(cvvInput, false);
     }
+    
     return false;
 }
 
+/*
+This validator uses all previous validator functions and also sees if
+credit card is being used. Returns true or false depending on if everything
+is correctly formated.
+*/
 const masterValidator = () => {
     const nameTest = validateName();
     const emailTest = validateEmail();
     const activityTest = validateActivity();
-    if (nameTest && emailTest && activityTest) {
-        if (paymentOptions[1].selected) {
-            return validateCreditCard();
+    const ccTest = validateCreditCard();
+
+    if (paymentOptions[1].selected) {
+        if (nameTest && emailTest && activityTest && ccTest) {
+            return true;
+        } else {
+            return false;
         }
-        return true;
     } else {
-        return false;
+        if (nameTest && emailTest && activityTest) {
+            return true;
+        } else {
+            return false;
+        }
     }
 }
 
@@ -241,13 +271,7 @@ payment.addEventListener('change', (e) => {
 });
 
 button.addEventListener('click', (e) => {
-    e.preventDefault();
-    // console.log('name: ' + validateName(nameInput.value));
-    // console.log('email: ' + validateEmail(emailInput.value));
-    // console.log('activity: ' + validateActivity());
-    // if (paymentOptions[1].selected) {
-    //     console.log('credit card: ' + validateCreditCard(cardNumberInput.value, zipcodeInput.value, cvvInput.value));
-    // }
-    //console.log(validateName(nameInput.value));
-    console.log(masterValidator());
+    if (!masterValidator()) {
+        e.preventDefault();
+    }
 });
