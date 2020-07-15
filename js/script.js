@@ -158,11 +158,14 @@ const validateEmail = () => {
     if (emailInput.value === '') {
         handleError(emailInput, true, '', type);
         handleError(emailInput, false, noEmptyMessage, type);
+        return false;
     } else if (!emailRegex.test(string)) {
         handleError(emailInput, true, '', type);
         handleError(emailInput, false, message, type);
+        return false;
     } else {
         handleError(emailInput, true, '', type);
+        return true;
     }
 }
 
@@ -242,6 +245,7 @@ const masterValidator = () => {
     const emailTest = validateEmail();
     const activityTest = validateActivity();
     const ccTest = validateCreditCard();
+    console.log(nameTest, emailTest, activityTest, ccTest);
 
     if (paymentOptions[1].selected) {
         if (nameTest && emailTest && activityTest && ccTest) {
