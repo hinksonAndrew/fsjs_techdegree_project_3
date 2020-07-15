@@ -81,73 +81,98 @@ const selectPaymentMethod = (option = 'credit card') => {
     }
 }
 
+//Error functions
 /*
-This addes a red border to the incorrect field.
-The type arg is used for specifying certain errors.
+creates div for error message to be used right after the error occured if there isnt
+already a div there.
 */
 const createDiv = (source, id, message) => {
-    const parent = source.parentNode;
-    const next = source.nextElementSibling;
-    const div = document.createElement('div');
-    div.setAttribute('id', id);
-    div.innerText = message;
-    parent.insertBefore(div, next);
+    const div = document.getElementById(id);
+    if (!div) {
+        const parent = source.parentNode;
+        const next = source.nextElementSibling;
+        const div = document.createElement('div');
+        div.setAttribute('id', id);
+        div.innerText = message;
+        parent.insertBefore(div, next);
+    }
 }
 
+/*
+removes the div created for error if it exists. No console error thrown
+if it tries to remove one that isnt there.
+*/
 const removeDiv = (id) => {
-    const element = document.getElementById(id);
-    console.log(id);
-    element.parentNode.removeChild(element);
+    const div = document.getElementById(id);
+    if (div) {
+        div.parentNode.removeChild(div);
+    }
+    
 }
 
-const handleError = (source, bool, message, type) => {
-    
+/*
+handles creating/removing/adding borders to error fields. 
+Allows more fields to use errors in this fashion if added later.
+*/
+const handleError = (source, bool, message, id) => {
     if (bool) {
         source.style.border = '2px solid #5e97b0';
-        removeDiv(type);
-        
+        removeDiv(id);
     } else {
         source.style.border = '2px solid red';
-        createDiv(source, type, message);
+        createDiv(source, id, message);
     }
 }
 
 // Validator Functions
+/*
+Checks to make sure name is correctly formated and there is input.
+*/
 const validateName = () => {
-    const message = 'Invalid Name';
+    const message = 'Invalid Name Format';
+    const type = 'name-error';
     const nameRegex = /^[a-z]* [a-z]*$/i;
     const string = nameInput.value; 
     if (nameRegex.test(string)) {
-        handleError(nameInput, true)
+        handleError(nameInput, true, '', type);
         return true;
     } else {
-        handleError(nameInput, false, message, 'name-error');
+        handleError(nameInput, false, message, type);
         return false;
     }
 }
+
+/*
+This is used to make sure email is formated correctly and not empty.
+Used in real-time listener down below in listeners section. 
+*/
 
 const validateEmail = () => {
     //pulled this regex from https://www.regular-expressions.info/email.html
-    const message = 'Invalid Email';
-    const emailRegex = /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/i;
+    const message = 'Invalid Email Format';
+    const noEmptyMessage = 'Email can not be empty';
+    const type = 'email-error';
+    const emailRegex = /^\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b$/i;
     const string = emailInput.value;
-    if (emailRegex.test(string)) {
-        handleError(emailInput, true);
-        return true;
+
+    if (emailInput.value === '') {
+        handleError(emailInput, true, '', type);
+        handleError(emailInput, false, noEmptyMessage, type);
+    } else if (!emailRegex.test(string)) {
+        handleError(emailInput, true, '', type);
+        handleError(emailInput, false, message, type);
     } else {
-        handleError(emailInput, false, message, 'email-error');
-        return false;
+        handleError(emailInput, true, '', type);
     }
 }
 
+/*
+Goes through each activity and checks to see if any are checked.
+Will return false and error if none are checked.
+*/
 const validateActivity = () => {
-    // if (activityTotalCost !== 0) {
-    //     handleError(activity, true);
-    //     return true;
-    // } else {
-    //     handleError(activity, false);
-    //     return false;
-    // }
+    const message = 'Must Select At Least One Activity';
+    const type = 'activity-error';
     let check = false;
     for (let i = 0; i < activities.length; i++) {
         if (activities[i].checked) {
@@ -155,15 +180,26 @@ const validateActivity = () => {
         }
     }
     if (check) {
-        handleError(activity, true);
+        handleError(activity, true, '', type);
+        activity.style.border = '0px';
         return true;
     } else {
-        handleError(activity, false);
+        handleError(activity, false, message, type);
         return false;
     }
 }
 
+/*
+Has error messages for different things that could go wrong, mainly not enough/too much in fields.
+Also checks each field to make sure it passes tests based on regex.
+*/
 const validateCreditCard = () => {
+    const numberMessage = 'Invalid Card Number: 13-16 digits allowed';
+    const zipMessage = 'Invalid Zip: 5 digits allowed only';
+    const cvvMessage = 'Invalid Cvv: 3 digits allowed only';
+    const numberType = 'number-error';
+    const zipType = 'zip-error';
+    const cvvType = 'cvv-error';
     const number = cardNumberInput.value;
     const zip = zipcodeInput.value;
     const cvv = cvvInput.value;
@@ -172,21 +208,21 @@ const validateCreditCard = () => {
     const cvvCode = /^[0-9]{3}$/.test(cvv);
 
     if (!cardNumber) {
-        handleError(cardNumberInput, false);
+        handleError(cardNumberInput, false, numberMessage, numberType);
     } else {
-        handleError(cardNumberInput, true);
+        handleError(cardNumberInput, true, '', numberType);
     }
 
     if (!zipCode) {
-        handleError(zipcodeInput, false);
+        handleError(zipcodeInput, false, zipMessage, zipType);
     } else {
-        handleError(zipcodeInput, true);
+        handleError(zipcodeInput, true, '', zipType);
     }
     
     if (!cvvCode) {
-        handleError(cvvInput, false);
+        handleError(cvvInput, false, cvvMessage, cvvType);
     } else {
-        handleError(cvvInput, true);
+        handleError(cvvInput, true, '', cvvType);
     }
 
     if (cardNumber && zipCode && cvvCode) {
@@ -318,8 +354,16 @@ payment.addEventListener('change', (e) => {
     selectPaymentMethod(e.target.value);
 });
 
+/*
+the listener on emailInput is a realtime listener.
+on keyup it validates email and also if it is empty it will show 
+empty error and if invalid format it will show that instead.
+*/
+emailInput.addEventListener('keyup', (e) => {
+    validateEmail();
+});
+
 button.addEventListener('click', (e) => {
-    e.preventDefault();
     if (!masterValidator()) {
         e.preventDefault();
     }
